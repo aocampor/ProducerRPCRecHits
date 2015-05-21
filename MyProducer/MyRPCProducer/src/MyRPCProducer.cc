@@ -15,8 +15,6 @@
 //         Created:  Sat, 16 May 2015 07:40:20 GMT
 //
 //
-
-
 // system include files
 #include <memory>
 #include <fstream>
@@ -108,9 +106,9 @@ class MyRPCProducer : public edm::EDProducer {
 
       // ----------member data ---------------------------
   edm::ESHandle <RPCGeometry> rpcGeom;
-   edm::InputTag src_;
-   typedef std::vector< const TrackingRecHit * >  Point;
-   typedef std::vector<Point> RPC_RecHit_Colliection;
+  edm::InputTag src_;
+  //  typedef std::vector< const TrackingRecHit * >  Point;
+  //  typedef std::vector<Point> RPC_RecHit_Colliection;
 };
 
 //
@@ -139,7 +137,7 @@ MyRPCProducer::MyRPCProducer(const edm::ParameterSet& iConfig)
 */
    //now do what ever initialization is needed
   src_  = iConfig.getParameter<edm::InputTag>( "src" );
-  produces<RPC_RecHit_Colliection>( "recHits" ).setBranchAlias( "recHits");
+  produces<RPCRecHitCollection>( "AhRecHits" );//.setBranchAlias( "AhRecHits");
 }
 
 
@@ -159,45 +157,74 @@ MyRPCProducer::~MyRPCProducer()
 void
 MyRPCProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-	///////////////////////////
-	//// RPC recHits producer//
-	///////////////////////////
+  ///////////////////////////
+  //// RPC recHits producer//
+  ///////////////////////////
+  
+  using namespace edm; 
+  using namespace std;
+  // retrieve the rpcrechits
+  Handle<RPCRecHitCollection> rpcRecHits; 
+  //iEvent.getByToken(src_,rpcRecHits);
+  iEvent.getByLabel( src_, rpcRecHits );
+  std::cout << "I am in the producer" << std::endl;
+  // create the vectors. Use auto_ptr, as these pointers will automatically
+  // delete when they go out of scope, a very efficient way to reduce memory leaks.
+  auto_ptr<RPCRecHitCollection> recHits( new RPCRecHitCollection );
+  // and already reserve some space for the new data, to control the size
+  // of your executible's memory use.
+  //const int size = rpcRecHits->size();
+  //  recHits->reserve( size );
+  std::cout << "1" << std::endl;
+  ESHandle<RPCGeometry> rpcGeo;
+  iSetup.get<MuonGeometryRecord>().get(rpcGeo);
+  std::cout << "2" << std::endl;
+  const std::vector< const RPCRoll * > & rolls = rpcGeo->rolls();
 
-	using namespace edm; 
-	using namespace std;
-	// retrieve the rpcrechits
-	Handle<RPCRecHitCollection> rpcRecHits; 
-    iEvent.getByLabel( src_, rpcRecHits );
-	std::cout << "I am in the producer" << std::endl;
-	// create the vectors. Use auto_ptr, as these pointers will automatically
-	// delete when they go out of scope, a very efficient way to reduce memory leaks.
-	auto_ptr<RPC_RecHit_Colliection> recHits( new RPC_RecHit_Colliection );
-	// and already reserve some space for the new data, to control the size
-	// of your executible's memory use.
-	const int size = rpcRecHits->size();
-	recHits->reserve( size );
-	RPCRecHitCollection::const_iterator recHit;
-	// loop to fill the vector 
-	for (recHit = rpcRecHits->begin(); recHit != rpcRecHits->end(); recHit++) {
-		RPCDetId rollId = (RPCDetId)(*recHit).rpcId();
-		RPCGeomServ rpcsrv(rollId);
-		LocalPoint recHitPos=recHit->localPosition();
-		const RPCRoll* rollasociated = rpcGeom->roll(rollId);
-		const BoundPlane & RPCSurface = rollasociated->surface(); 
-		GlobalPoint RPCGlobalPoint = RPCSurface.toGlobal(recHitPos);
+  //  RPCRecHit rh;
+  edm::OwnVector<RPCRecHit> RPCPointVector;
+  RPCRecHitCollection::const_iterator recHit;
+  // loop to fill the vector 
+  std::cout << "3" << std::endl;
+  for (int i = 0; i < (int) rolls.size() ; ++i){
+    RPCDetId did =  rolls[i]->id();
+    RPCPointVector.clear();
+    std::cout << "4" << std::endl;
+    for (recHit = rpcRecHits->begin(); recHit != rpcRecHits->end(); recHit++) {
+      std::cout << "a5" << std::endl;
+      RPCDetId rollId = (RPCDetId)(*recHit).rpcId();
+      std::cout << "b5" << std::endl;
+      if(rollId != did)
+	continue;
+      std::cout << "c5" << std::endl;
+      RPCGeomServ rpcsrv(rollId);
+      std::cout << "d5" << std::endl;
+      LocalPoint recHitPos=recHit->localPosition();
+      std::cout << "e5" << std::endl;
+      const RPCRoll* rollasociated = rpcGeom->roll(rollId);
+      std::cout << "f5" << std::endl;
+      const BoundPlane & RPCSurface = rollasociated->surface(); 
+      std::cout << "g5" << std::endl;
+      GlobalPoint RPCGlobalPoint = RPCSurface.toGlobal(recHitPos);
+      std::cout << "5" << std::endl;
+      //  W_0 is Masked 
+      if (rollId.region() == 0 && rollId.ring() != 0) {
+	std::cout<<"RPC Rec Hit in "<<rpcsrv.name();
+	// std::cout<<" Local Position = "<<recHitPos<<" Local Uncrt = "<<
+	std::cout<<" Global Position = "<<RPCGlobalPoint; // <<" Global Uncrt = "<<;
+	std::cout<<" Clustersize = "<<recHit->clusterSize()<<" First strip of cluster = "<<recHit->firstClusterStrip()<<" BX = "<<recHit->BunchX()<<std::endl;
+	// fill the RPCRecHits in the vectors
+	//rh = (*recHit);
+	RPCPointVector.push_back(*recHit);
+	
+      }
+    }
+    std::cout << "6" << std::endl;
+    recHits->put(did, RPCPointVector.begin(),RPCPointVector.end()  );
+  }
 
-		//  W_0 is Masked 
-		if (rollId.region() == 0 && rollId.ring() != 0) {
-			std::cout<<"RPC Rec Hit in "<<rpcsrv.name();
-			// std::cout<<" Local Position = "<<recHitPos<<" Local Uncrt = "<<
-			std::cout<<" Global Position = "<<RPCGlobalPoint; // <<" Global Uncrt = "<<;
-			std::cout<<" Clustersize = "<<recHit->clusterSize()<<" First strip of cluster = "<<recHit->firstClusterStrip()<<" BX = "<<recHit->BunchX()<<std::endl;
-			// fill the RPCRecHits in the vectors
-			recHits->push_back( recHit->recHits());
-		}
-	}
-	// and save the vectors
-	iEvent.put( recHits, "recHits" );
+  // and save the vectors
+  iEvent.put( recHits, "recHits" );
 }
 // ------------ method called once each job just before starting event loop  ------------
 void 

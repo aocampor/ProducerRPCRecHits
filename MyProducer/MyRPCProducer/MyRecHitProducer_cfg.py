@@ -3,10 +3,11 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Prod")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.load("Geometry.CMSCommonData.cmsExtendedGeometry2023XML_cfi")
+process.load("Configuration.Geometry.GeometryExtended2015Reco_cff")
+#process.load("Geometry.CMSCommonData.cmsExtendedGeometry2023XML_cfi")
 process.load("Geometry.MuonNumbering.muonNumberingInitialization_cfi")
 process.load("Geometry.RPCGeometry.rpcGeometry_cfi")
-process.load("Geometry.CSCGeometry.cscGeometry_cfi")
+#process.load("Geometry.CSCGeometry.cscGeometry_cfi")
 process.load("Alignment.CommonAlignmentProducer.FakeAlignmentSource_cfi")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
@@ -19,11 +20,11 @@ process.source = cms.Source("PoolSource",
 )
 
 process.out = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string('MyRecHitsColliction.root')
+    fileName = cms.untracked.string('MyRecHitsCollection.root')
 )
 
 process.demo = cms.EDProducer('MyRPCProducer',
-                      src = cms.InputTag('AhmedRecHitCollection')
+                      src = cms.InputTag('rpcRecHits')
 )
 
 
