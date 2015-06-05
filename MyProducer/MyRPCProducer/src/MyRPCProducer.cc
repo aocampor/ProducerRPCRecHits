@@ -1,4 +1,4 @@
-// -*- C++ -*-
+ // -*- C++ -*- Space modification
 //
 // Package:    Producer/MyRPCProducer
 // Class:      MyRPCProducer
