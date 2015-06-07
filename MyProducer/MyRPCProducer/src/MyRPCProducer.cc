@@ -1,10 +1,12 @@
- // -*- C++ -*- Space modification
+// -*- C++ -*-
 //
 // Package:    Producer/MyRPCProducer
 // Class:      MyRPCProducer
 // 
 /**\class MyRPCProducer MyRPCProducer.cc Producer/MyRPCProducer/plugins/MyRPCProducer.cc
+
  Description: [one line class summary]
+
  Implementation:
      [Notes on implementation]
 */
@@ -21,7 +23,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
-
+#include <map>
 
 // root include files
 #include "TFile.h"
@@ -49,7 +51,6 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include <DataFormats/RPCRecHit/interface/RPCRecHit.h>
-#include "DataFormats/RPCRecHit/interface/RPCRecHitCollection.h"
 #include <DataFormats/RPCDigi/interface/RPCDigiCollection.h>
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
  
@@ -78,7 +79,29 @@
 #include <Geometry/Records/interface/MuonGeometryRecord.h>
 #include <Geometry/CommonTopologies/interface/RectangularStripTopology.h>
 #include <Geometry/CommonTopologies/interface/TrapezoidalStripTopology.h>
+#include "DataFormats/Common/interface/Handle.h"
 
+
+#include "DataFormats/MuonDetId/interface/RPCDetId.h"
+#include "SimMuon/RPCDigitizer/src/RPCSimSetUp.h"
+#include "SimMuon/RPCDigitizer/src/RPCDigiProducer.h"
+#include "SimMuon/RPCDigitizer/src/RPCDigitizer.h"
+
+#include "Geometry/Records/interface/MuonGeometryRecord.h"
+#include "SimDataFormats/CrossingFrame/interface/CrossingFrame.h"
+#include "SimDataFormats/CrossingFrame/interface/MixCollection.h"
+#include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "SimMuon/RPCDigitizer/src/RPCSynchronizer.h"
+ 
+ //Random Number
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "FWCore/Utilities/interface/RandomNumberGenerator.h"
+#include "FWCore/Utilities/interface/Exception.h"
+
+#include <DataFormats/MuonDetId/interface/RPCDetId.h>
+#include <DataFormats/RPCDigi/interface/RPCDigi.h>
+#include <DataFormats/MuonData/interface/MuonDigiCollection.h>
 
 //
 // class declaration
@@ -102,10 +125,10 @@ class MyRPCProducer : public edm::EDProducer {
       //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
       // ----------member data ---------------------------
-  edm::ESHandle <RPCGeometry> rpcGeom;
-  edm::InputTag src_;
-  //  typedef std::vector< const TrackingRecHit * >  Point;
-  //  typedef std::vector<Point> RPC_RecHit_Colliection;
+  //edm::ESHandle <RPCGeometry> rpcGeom;
+  edm::InputTag src_ ;
+  //edm::InputTag RPCDigiTagSig_ ;
+  typedef MuonDigiCollection<RPCDetId, RPCDigi> RPCDigiCollection;
 };
 
 //
@@ -125,15 +148,17 @@ MyRPCProducer::MyRPCProducer(const edm::ParameterSet& iConfig)
    //register your products
 /* Examples
    produces<ExampleData2>();
+
    //if do put with a label
    produces<ExampleData2>("label");
  
    //if you want to put into the Run
    produces<ExampleData2,InRun>();
 */
-   //now do what ever initialization is needed
-  src_  = iConfig.getParameter<edm::InputTag>( "src" );
-  produces<RPCRecHitCollection>();//.setBranchAlias( "AhRecHits");
+	//now do what ever initialization is needed
+	src_          = iConfig.getParameter<edm::InputTag>("src");
+	//RPCDigiTagSig_          = iConfig.getParameter<edm::InputTag>("RPCDigiTagSig");
+	produces<RPCDigiCollection>();
 }
 
 
@@ -153,76 +178,31 @@ MyRPCProducer::~MyRPCProducer()
 void
 MyRPCProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  ///////////////////////////
-  //// RPC recHits producer//
-  ///////////////////////////
-  
-  using namespace edm; 
-  using namespace std;
-  // retrieve the rpcrechits
-  Handle<RPCRecHitCollection> rpcRecHits; 
-  //iEvent.getByToken(src_,rpcRecHits);
-  iEvent.getByLabel( src_, rpcRecHits );
-  //std::cout << "I am in the producer" << std::endl;
-  // create the vectors. Use auto_ptr, as these pointers will automatically
-  // delete when they go out of scope, a very efficient way to reduce memory leaks.
-  auto_ptr<RPCRecHitCollection> recHits( new RPCRecHitCollection() );
-  // and already reserve some space for the new data, to control the size
-  // of your executible's memory use.
-  //const int size = rpcRecHits->size();
-  //  recHits->reserve( size );
-  //std::cout << "1" << std::endl;
-  ESHandle<RPCGeometry> rpcGeo;
-  iSetup.get<MuonGeometryRecord>().get(rpcGeo);
-  //std::cout << "2" << std::endl;
-  const std::vector< const RPCRoll * > & rolls = rpcGeo->rolls();
-
-  //  RPCRecHit rh;
-  edm::OwnVector<RPCRecHit> RPCPointVector;
-  RPCRecHitCollection::const_iterator recHit;
-  // loop to fill the vector 
-  //std::cout << "3" << std::endl;
-  for (int i = 0; i < (int) rolls.size() ; ++i){
-    RPCDetId did =  rolls[i]->id();
-    RPCPointVector.clear();
-    //std::cout << "4" << std::endl;
-    for (recHit = rpcRecHits->begin(); recHit != rpcRecHits->end(); recHit++) {
-      //std::cout << "a5" << std::endl;
-      RPCDetId rollId = (RPCDetId)(*recHit).rpcId();
-      //std::cout << "b5" << std::endl;
-      if(rollId != did)
-	continue;
-      //std::cout << "c5" << std::endl;
-      RPCGeomServ rpcsrv(rollId);
-      //std::cout << "d5" << std::endl;
-      //LocalPoint recHitPos=recHit->localPosition();
-      std::cout << "e5 " << rollId.region() << " " << rollId.ring() << " " << rollId.sector() << " " << rollId.subsector() << std::endl;
-      std::cout << "e5 " << did.region() << " " << did.ring() << " " << did.sector() << " " << did.subsector() << std::endl;
-      
-      //const RPCRoll * rollasociated =  rpcGeom->roll( rollId);
-      //std::cout << "f5" << std::endl;
-      //const BoundPlane & RPCSurface = rollasociated->surface(); 
-      //std::cout << "g5" << std::endl;
-      //GlobalPoint RPCGlobalPoint = RPCSurface.toGlobal(recHitPos);
-      //std::cout << "5" << std::endl;
-      //  W_0 is Masked 
-      if (rollId.region() == 0 && rollId.ring() != 0) {
-	//std::cout<<"RPC Rec Hit in "<<rpcsrv.name();
-	//// std::cout<<" Local Position = "<<recHitPos<<" Local Uncrt = "<<
-	//std::cout<<" Global Position = "<<RPCGlobalPoint; // <<" Global Uncrt = "<<;
-	//std::cout<<" Clustersize = "<<recHit->clusterSize()<<" First strip of cluster = "<<recHit->firstClusterStrip()<<" BX = "<<recHit->BunchX()<<std::endl;
-	// fill the RPCRecHits in the vectors
-	//rh = (*recHit);
-	RPCPointVector.push_back(*recHit);
+// RPCDigiTagSig_ = src_
 	
-      }
-    }
-    //std::cout << "6" << std::endl;
-    recHits->put(did, RPCPointVector.begin(),RPCPointVector.end()  );
-  }
+  //////////////////////////////////
+  //// RPC DigiCollection producer//
+  //////////////////////////////////
 
-  // and save the vectors
-  iEvent.put( recHits );//, "AhmedRecHits" );
+	using namespace edm; 
+	using namespace std;
+	// Loop over RPC digis, copying them from our own local storage
+	// retrieve the digis
+	Handle<RPCDigiCollection> pRPCdigis; 
+	if (iEvent.getByLabel( src_, pRPCdigis )) { 
+		auto_ptr<RPCDigiCollection> RPCDigiMerge( new RPCDigiCollection() );
+		RPCDigiCollection::DigiRangeIterator RLayerIt;
+		for (RLayerIt = pRPCdigis->begin(); RLayerIt != pRPCdigis->end(); ++RLayerIt) {
+			// The layerId
+			const RPCDetId& layerId = (*RLayerIt).first;
+			// Get the iterators over the digis associated with this LayerId
+			const RPCDigiCollection::Range& range = (*RLayerIt).second;
+			//RPCPointVector.push_back(*RLayerIt);
+			RPCDigiMerge->put(range, layerId);
+		}
+		iEvent.put(RPCDigiMerge);
+	}
+	
 }
 // ------------ method called once each job just before starting event loop  ------------
 void 
