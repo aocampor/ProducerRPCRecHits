@@ -1,0 +1,8 @@
+edmDumpEventContent <rootfile> | grep RPC
+
+
+edmDumpEventContent root://eoscms//eos/cms/store/data/Commissioning2014/Cosmics/RECO/PromptReco-v4/000/229/684/00000/02B081B0-DF69-E411-8A88-02163E010EF5.root | grep gtDigis
+
+
+
+edmDumpEventContent root://eoscms//eos/cms/store/data/Run2015A/RPCMonitor/RAW/v1/000/247/081/00000/1A498EDF-460B-E511-8828-02163E0121C5.root

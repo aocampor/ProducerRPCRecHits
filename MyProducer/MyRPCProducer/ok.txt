@@ -1,0 +1,16 @@
+[?1034hType                                  Module                   Label             Process   
+-------------------------------------------------------------------------------------------
+L1GlobalTriggerReadoutRecord          "hltGtDigis"             ""                "HLT"     
+L1MuGMTReadoutCollection              "hltGtDigis"             ""                "HLT"     
+MuonDigiCollection<CSCDetId,CSCStripDigi>    "hltMuonCSCDigis"        "MuonCSCStripDigi"   "HLT"     
+MuonDigiCollection<CSCDetId,CSCWireDigi>    "hltMuonCSCDigis"        "MuonCSCWireDigi"   "HLT"     
+MuonDigiCollection<DTChamberId,DTLocalTrigger>    "hltMuonDTDigis"         ""                "HLT"     
+MuonDigiCollection<DTLayerId,DTDigi>    "hltMuonDTDigis"         ""                "HLT"     
+MuonDigiCollection<RPCDetId,RPCDigi>    "hltMuonRPCDigis"        ""                "HLT"     
+RPCRawDataCounts                      "hltMuonRPCDigis"        ""                "HLT"     
+edm::RangeMap<CSCDetId,edm::OwnVector<CSCSegment,edm::ClonePolicy<CSCSegment> >,edm::ClonePolicy<CSCSegment> >    "hltCscSegments"         ""                "HLT"     
+edm::RangeMap<DTChamberId,edm::OwnVector<DTRecSegment4D,edm::ClonePolicy<DTRecSegment4D> >,edm::ClonePolicy<DTRecSegment4D> >    "hltDt4DSegments"        ""                "HLT"     
+edm::RangeMap<RPCDetId,edm::OwnVector<RPCRecHit,edm::ClonePolicy<RPCRecHit> >,edm::ClonePolicy<RPCRecHit> >    "hltRpcRecHits"          ""                "HLT"     
+edm::TriggerResults                   "TriggerResults"         ""                "HLT"     
+vector<L1MuGMTCand>                   "hltGtDigis"             ""                "HLT"     
+trigger::TriggerEvent                 "hltTriggerSummaryAOD"   ""                "HLT"     
