@@ -141,7 +141,17 @@ MyRPCProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	*/
 
 	// Filter out RPC station 2!
+/*
+This if statement is a bit too complicated.... there are more simple ways of doing this, 
+simpler is better most of the time if you want to filter out station 2 you just do...
+if(  rpcId.station() == 2 )
+	continue;
+let us say you want to filter out W+2_RB1in_S4 you do something like
 
+if( rpcId.region() == 0 && rpcId.ring() == 2 && rpcId.station() == 1 && rpcId.sector() == 10 )
+	continue;
+then you do as many if statements as you need.
+*/
 	if (
 	(rpcId.region()!= 0&& rpcId.ring() != -1&& rpcId.station() != 2 && rpcId.sector() != 4 && rpcId.layer()!= 1)
 	||(rpcId.region()!= 0&& rpcId.ring() != -1&& rpcId.station() != 2 && rpcId.sector() != 7 && rpcId.layer()!= 2)
