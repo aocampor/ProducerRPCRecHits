@@ -132,26 +132,16 @@ MyRPCProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        for(std::vector<const RPCRoll*>::const_iterator r = roles.begin();
 	   r != roles.end(); ++r){
 	 RPCDetId rpcId = (*r)->id();
-	/* 
-	 // Filter out wheel 0!
-	 if( rpcId.region() == 0 && rpcId.ring() == 0 ){
-	   //cout << "Filtering out Wheel 0!!!!!!!!!!!!!!!!!!! " << endl;
+	
+	 // Filter out sector10!
+	 if( rpcId.region() == 0 && rpcId.sector() == 10 ){
+	   //cout << "Filtering out sector 10!!!!!!!!!!!!!!!!!!! " << endl;
 	   continue;
 	 }
-	*/
-
-	// Filter out RPC station 2!
+	
 /*
-This if statement is a bit too complicated.... there are more simple ways of doing this, 
-simpler is better most of the time if you want to filter out station 2 you just do...
-if(  rpcId.station() == 2 )
-	continue;
-let us say you want to filter out W+2_RB1in_S4 you do something like
+	// Filter out Leaky RPC in station 2!
 
-if( rpcId.region() == 0 && rpcId.ring() == 2 && rpcId.station() == 1 && rpcId.sector() == 10 )
-	continue;
-then you do as many if statements as you need.
-*/
 	if (
 	(rpcId.region()!= 0&& rpcId.ring() != -1&& rpcId.station() != 2 && rpcId.sector() != 4 && rpcId.layer()!= 1)
 	||(rpcId.region()!= 0&& rpcId.ring() != -1&& rpcId.station() != 2 && rpcId.sector() != 7 && rpcId.layer()!= 2)
@@ -160,11 +150,11 @@ then you do as many if statements as you need.
 	||(rpcId.region()!= 0&& rpcId.ring() != 2&& rpcId.station() != 2 && rpcId.sector() != 5 && rpcId.layer()!= 2)
 	||(rpcId.region()!= 0&& rpcId.ring() != 2&& rpcId.station() != 2 && rpcId.sector() != 8 && rpcId.layer()!= 1)
 	){
-	   cout << "Filtering out RPC station 2! " << endl;
+	   cout << "Filtering out leaky RPC in station 2! " << endl;
 	   continue;
 	 }
 
-
+*/
 	 RPCDigiCollection::Range rpcRangeDigi= pRPCdigis->get(rpcId);
 	 std::vector<long> dig;
 	 std::vector< std::vector <long> > prev;
