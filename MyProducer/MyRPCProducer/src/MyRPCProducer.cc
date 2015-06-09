@@ -133,14 +133,14 @@ MyRPCProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   r != roles.end(); ++r){
 	 RPCDetId rpcId = (*r)->id();
 	
-	 // Filter out sector10!
+	 // Filter out sector 10!
 	 if( rpcId.region() == 0 && rpcId.sector() == 10 ){
 	   //cout << "Filtering out sector 10!!!!!!!!!!!!!!!!!!! " << endl;
 	   continue;
 	 }
 	
 /*
-	// Filter out Leaky RPC in station 2!
+	// Filter out RPC station 2!
 
 	if (
 	(rpcId.region()!= 0&& rpcId.ring() != -1&& rpcId.station() != 2 && rpcId.sector() != 4 && rpcId.layer()!= 1)
@@ -150,7 +150,7 @@ MyRPCProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	||(rpcId.region()!= 0&& rpcId.ring() != 2&& rpcId.station() != 2 && rpcId.sector() != 5 && rpcId.layer()!= 2)
 	||(rpcId.region()!= 0&& rpcId.ring() != 2&& rpcId.station() != 2 && rpcId.sector() != 8 && rpcId.layer()!= 1)
 	){
-	   cout << "Filtering out leaky RPC in station 2! " << endl;
+	   cout << "Filtering out RPC station 2! " << endl;
 	   continue;
 	 }
 
