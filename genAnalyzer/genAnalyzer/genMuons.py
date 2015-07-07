@@ -24,7 +24,13 @@ process.source = cms.Source("PoolSource",
 )
 
 process.demo = cms.EDAnalyzer('genAnalyzer',
-                              RootFileName = cms.untracked.string("genmuons.root"),
+                              
+							 # genParticles  = cms.InputTag("genParticles"),
+							  GTReadoutRcd     = cms.InputTag("gtDigis"),
+                              GMTReadoutRcd    = cms.InputTag("gtDigis"),
+                              RootFileName = cms.untracked.string("output.root"),
+                              Debug        = cms.untracked.bool(False),
+							
 
 
 )
@@ -32,5 +38,7 @@ process.demo = cms.EDAnalyzer('genAnalyzer',
 
 process.p = cms.Path(process.demo)
 GenParticles = cms.string("prunedGenParticles"),
+
+
 
 
