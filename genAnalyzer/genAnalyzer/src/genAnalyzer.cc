@@ -110,6 +110,7 @@
 
 // deltaPhi
 #include "DataFormats/Math/interface/deltaPhi.h"
+#include "CommonTools/Utils/interface/normalizedPhi.h"
 
 //
 // class declaration
@@ -147,8 +148,11 @@ class genAnalyzer : public edm::EDAnalyzer {
   TFile * outputfile;
  
 
-  TH1F * phi_mu, * eta_mu, * pt_mu;
-  TH2F * genparticles_ETA_PHI;
+  TH1F * phi_mu_beforeL1, * eta_mu_beforeL1, * pt_mu_beforeL1;
+  TH2F * genparticles_ETA_PHI_beforeL1;
+
+  TH1F * phi_mu_afterL1, * eta_mu_afterL1, * pt_mu_afterL1;
+  TH2F * genparticles_ETA_PHI_afterL1;
   
 
   TH1F * RPC_B_Triggers_ETA_All, * RPC_B_Triggers_ETA_Q0, * RPC_B_Triggers_ETA_Q1, * RPC_B_Triggers_ETA_Q2, * RPC_B_Triggers_ETA_Q3;
@@ -204,26 +208,31 @@ genAnalyzer::genAnalyzer(const edm::ParameterSet& iConfig)
 
    outputfile = new TFile(rootFileName.c_str(), "RECREATE" );
 
-	phi_mu    = new TH1F("phi_mu", "phi_mu", n_phi, n_phi_1, n_phi_2);
-	eta_mu    = new TH1F("eta_mu", "eta_mu", n_eta_exact, n_eta_vec);
-	pt_mu     = new TH1F("Pt_mu", "Pt_mu", pt_n, pt_x1, pt_x2);
-	genparticles_ETA_PHI = new TH2F("genparticles_ETA_PHI",  "genparticles_ETA_PHI", n_eta_exact, n_eta_vec, n_phi, n_phi_1, n_phi_2);
+	phi_mu_beforeL1    = new TH1F("phi_mu_beforeL1", "phi_mu_beforeL1", n_phi, n_phi_1, n_phi_2);
+	eta_mu_beforeL1    = new TH1F("eta_mu_beforeL1", "eta_mu_beforeL1", n_eta_exact, n_eta_vec);
+	pt_mu_beforeL1     = new TH1F("pt_mu_beforeL1", "pt_mu_beforeL1", pt_n, pt_x1, pt_x2);
+	phi_mu_afterL1    = new TH1F("phi_mu_afterL1", "phi_mu_afterL1", n_phi, n_phi_1, n_phi_2);
+	eta_mu_afterL1    = new TH1F("eta_mu_afterL1", "eta_mu_afterL1", n_eta_exact, n_eta_vec);
+	pt_mu_afterL1     = new TH1F("pt_mu_afterL1", "pt_mu_afterL1", pt_n, pt_x1, pt_x2);
+
+	genparticles_ETA_PHI_beforeL1 = new TH2F("genparticles_ETA_PHI_beforeL1",  "genparticles_ETA_PHI_beforeL1", n_eta_exact, n_eta_vec, n_phi, n_phi_1, n_phi_2);
+	genparticles_ETA_PHI_afterL1 = new TH2F("genparticles_ETA_PHI_afterL1",  "genparticles_ETA_PHI_afterL1", n_eta_exact, n_eta_vec, n_phi, n_phi_1, n_phi_2);
 
    // Lumonisity
    MyLumiHistogram_RPCb	= new TH1F("MyLumiHistogram_RPCb",  "MyLumiHistogram_RPCb", 5001 , 1, 5000);
 
    //RPC_B
-   RPC_B_Triggers_PHI_All = new TH1F("RPC_B_Triggers_PHI_All",  "RPC_B_Triggers_PHI_All", n_phi, n_phi_1, n_phi_2);
-   RPC_B_Triggers_PHI_Q0  = new TH1F("RPC_B_Triggers_PHI_Q0",   "RPC_B_Triggers_PHI_Q0",  n_phi, n_phi_1, n_phi_2);
-   RPC_B_Triggers_PHI_Q1  = new TH1F("RPC_B_Triggers_PHI_Q1",   "RPC_B_Triggers_PHI_Q1",  n_phi, n_phi_1, n_phi_2);
-   RPC_B_Triggers_PHI_Q2  = new TH1F("RPC_B_Triggers_PHI_Q2",   "RPC_B_Triggers_PHI_Q2",  n_phi, n_phi_1, n_phi_2);
-   RPC_B_Triggers_PHI_Q3  = new TH1F("RPC_B_Triggers_PHI_Q3",   "RPC_B_Triggers_PHI_Q3",  n_phi, n_phi_1, n_phi_2);   
-   RPC_B_Triggers_ETA_All = new TH1F("RPC_B_Triggers_ETA_All",  "RPC_B_Triggers_ETA_All", n_eta_exact, n_eta_vec);
-   RPC_B_Triggers_ETA_Q0  = new TH1F("RPC_B_Triggers_ETA_Q0",   "RPC_B_Triggers_ETA_Q0",  n_eta_exact, n_eta_vec);
-   RPC_B_Triggers_ETA_Q1  = new TH1F("RPC_B_Triggers_ETA_Q1",   "RPC_B_Triggers_ETA_Q1",  n_eta_exact, n_eta_vec);
-   RPC_B_Triggers_ETA_Q2  = new TH1F("RPC_B_Triggers_ETA_Q2",   "RPC_B_Triggers_ETA_Q2",  n_eta_exact, n_eta_vec);
-   RPC_B_Triggers_ETA_Q3  = new TH1F("RPC_B_Triggers_ETA_Q3",   "RPC_B_Triggers_ETA_Q3",  n_eta_exact, n_eta_vec);
-   RPC_B_Triggers_ETA_PHI_All = new TH2F("RPC_B_Triggers_ETA_PHI_All",  "RPC_B_Triggers_ETA_PHI_All", n_eta_exact, n_eta_vec, n_phi, n_phi_1, n_phi_2);
+	RPC_B_Triggers_PHI_All = new TH1F("RPC_B_Triggers_PHI_All",  "RPC_B_Triggers_PHI_All", n_phi, n_phi_1, n_phi_2);
+	RPC_B_Triggers_PHI_Q0  = new TH1F("RPC_B_Triggers_PHI_Q0",   "RPC_B_Triggers_PHI_Q0",  n_phi, n_phi_1, n_phi_2);
+	RPC_B_Triggers_PHI_Q1  = new TH1F("RPC_B_Triggers_PHI_Q1",   "RPC_B_Triggers_PHI_Q1",  n_phi, n_phi_1, n_phi_2);
+	RPC_B_Triggers_PHI_Q2  = new TH1F("RPC_B_Triggers_PHI_Q2",   "RPC_B_Triggers_PHI_Q2",  n_phi, n_phi_1, n_phi_2);
+	RPC_B_Triggers_PHI_Q3  = new TH1F("RPC_B_Triggers_PHI_Q3",   "RPC_B_Triggers_PHI_Q3",  n_phi, n_phi_1, n_phi_2);   
+	RPC_B_Triggers_ETA_All = new TH1F("RPC_B_Triggers_ETA_All",  "RPC_B_Triggers_ETA_All", n_eta_exact, n_eta_vec);
+	RPC_B_Triggers_ETA_Q0  = new TH1F("RPC_B_Triggers_ETA_Q0",   "RPC_B_Triggers_ETA_Q0",  n_eta_exact, n_eta_vec);
+	RPC_B_Triggers_ETA_Q1  = new TH1F("RPC_B_Triggers_ETA_Q1",   "RPC_B_Triggers_ETA_Q1",  n_eta_exact, n_eta_vec);
+	RPC_B_Triggers_ETA_Q2  = new TH1F("RPC_B_Triggers_ETA_Q2",   "RPC_B_Triggers_ETA_Q2",  n_eta_exact, n_eta_vec);
+	RPC_B_Triggers_ETA_Q3  = new TH1F("RPC_B_Triggers_ETA_Q3",   "RPC_B_Triggers_ETA_Q3",  n_eta_exact, n_eta_vec);
+	RPC_B_Triggers_ETA_PHI_All = new TH2F("RPC_B_Triggers_ETA_PHI_All",  "RPC_B_Triggers_ETA_PHI_All", n_eta_exact, n_eta_vec, n_phi, n_phi_1, n_phi_2);
 
   
 
@@ -259,8 +268,8 @@ genAnalyzer::~genAnalyzer()
 
 //	MyLumiHistogram_RPCb->Write();
 	
-	RPC_B_Triggers_ETA_PHI_All->Write();
-  	RPC_B_Triggers_PHI_All->Write();
+	
+  	/*RPC_B_Triggers_PHI_All->Write();
 	RPC_B_Triggers_PHI_Q0->Write();
 	RPC_B_Triggers_PHI_Q1->Write();
 	RPC_B_Triggers_PHI_Q2->Write();
@@ -269,13 +278,17 @@ genAnalyzer::~genAnalyzer()
 	RPC_B_Triggers_ETA_Q0->Write();
 	RPC_B_Triggers_ETA_Q1->Write();
 	RPC_B_Triggers_ETA_Q2->Write();
-	RPC_B_Triggers_ETA_Q3->Write();
+	RPC_B_Triggers_ETA_Q3->Write();*/
 	
-	phi_mu ->Write();
-	eta_mu ->Write();
-	pt_mu ->Write();
-	genparticles_ETA_PHI->Write();
-
+   	phi_mu_beforeL1 ->Write();
+	phi_mu_afterL1 ->Write();
+	eta_mu_beforeL1 ->Write();
+	eta_mu_afterL1 ->Write();
+	pt_mu_beforeL1 ->Write();
+	pt_mu_afterL1 ->Write();
+	genparticles_ETA_PHI_beforeL1->Write();
+	genparticles_ETA_PHI_afterL1->Write();
+	RPC_B_Triggers_ETA_PHI_All->Write();
 	
    outputfile->Close();
    if(debug) std::cout<<"genAnalyzer :: Destructor :: end]"<<std::endl; 
@@ -298,104 +311,110 @@ genAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	double Constxxxyyy = 1 ; // for calculation of trigger rate 
 	
 	
-	///////////////////////////////////
-	// Generated particles partt///////
-	///////////////////////////////////
+	//////////////////////////////////////////////
+	// Handling trigger and gen collections///////
+	//////////////////////////////////////////////
 
+	// Trigger collection 
+	edm::Handle<L1MuGMTReadoutCollection> pCollection;
+	iEvent.getByLabel(m_gmtReadoutLabel,pCollection);
+	// GenParticles collection
 	std::vector<reco::GenParticle> theGenParticles;
 	edm::Handle<reco::GenParticleCollection> genParticles;
 	iEvent.getByLabel("genParticles", genParticles);
 	theGenParticles.insert(theGenParticles.end(),genParticles->begin(),genParticles->end());
 	//std::cout << "This Event has " <<  theGenParticles.size() << " genParticles" << std::endl;
 	using namespace reco;
+	// loop over genparticles
 	for(unsigned int i=0; i<genParticles->size(); ++i) {
 		const GenParticle & g = (*genParticles)[i];
 		std::cout<<"Gen mu Candidate | id = "<<std::setw(5)<<g.pdgId()<<" | st = "<<std::setw(5)<<g.status()<<" | pt = "<<std::setw(12)<<g.pt();
 		std::cout<<" GeV/c | et = "<<std::setw(12)<<g.et()<<" GeV | eta = "<<std::setw(12)<<g.eta()<<" | phi = "<<std::setw(12)<<g.phi()<<std::endl;
-		std::cout<<"!!! Filling Histograms !!!"<<std::endl;
-		//if (g.status() == 3){ // without status () == 3
-			phi_mu->Fill(g.phi()); 
-			eta_mu->Fill(g.eta());
-			pt_mu->Fill(g.et());
-			genparticles_ETA_PHI->Fill(g.eta(),g.phi());
-		//}
-	}
-	//////////////////////
-	// Trigger Part///////
-	//////////////////////
-	edm::Handle<L1MuGMTReadoutCollection> pCollection;
-	iEvent.getByLabel(m_gmtReadoutLabel,pCollection);
-		if ( ! pCollection.isValid() ) {
-    //edm::LogError("discriminateGMT") << "can't find L1MuGMTReadoutCollection with label "<< m_gmtReadoutLabel ;
-    std::cout<<"can't find L1MuGMTReadoutCollection with label "<< m_gmtReadoutLabel<<std::endl;
-    //return -1; 
-	}
-		// get GMT readout collection
-		const L1MuGMTReadoutCollection * gmtRC = pCollection.product();
-		// get record vector
-		std::vector<L1MuGMTReadoutRecord>::const_iterator RRItr;
-		std::vector<L1MuGMTReadoutRecord> gmt_records = gmtRC->getRecords();
-		for( RRItr = gmt_records.begin(); RRItr != gmt_records.end(); ++RRItr ) {
-			int BxInEventNew = RRItr->getBxNr();
-			// int BxCounter = RRItr->getBxCounter();
-			//int BxInEvent = RRItr->getBxInEvent();
-			//std::cout<<" BxCounter= "<<BxCounter<<" BxInEvent= "<<BxInEvent<<" BxInEventNew= "<<BxInEventNew<<std::endl;
-			int nrpcB = 0;
-			std::vector<L1MuRegionalCand> BrlRpcCands = RRItr->getBrlRPCCands();
-			std::vector<L1MuRegionalCand> FwdRPCCands = RRItr->getFwdRPCCands();
-			std::vector<L1MuRegionalCand> BrlDtCands  = RRItr->getDTBXCands ();
-			std::vector<L1MuRegionalCand> CSCCands = RRItr->getCSCCands();
-			std::vector<L1MuRegionalCand>::const_iterator RCItr;
-			//RPC_B Triggers  
-			for( RCItr = BrlRpcCands.begin(); RCItr !=BrlRpcCands.end(); ++RCItr) {
-				if ( !(*RCItr).empty() ) {
-					m_GMTcandidatesBx.push_back( BxInEventNew );
-					nrpcB++;
-					if(debug) {
-						std::cout<<"Run :: "<<rnNum<<" Event :: "<<evNum<<" | "; 
-						//std::cout<<"RPC Barrel Trigger :: q = "<<RCItr->quality()<<" pt = "<<RCItr->ptValue()<<" eta = "<<RCItr->etaValue()<<" phi = "<<RCItr->phiValue()<<std::endl;
-					}
-					if(!debug) {
-						int quality_RPC_B = RCItr->quality();
-						double eta_RPC_B = RCItr->etaValue();	
-						double phi_RPC_B = RCItr->phiValue();	
-						if(debug) std::cout<<"Fill All Histos"<<std::endl;
-						//if ( T_unix>= 1427179140 && T_unix<= 1427180352)
-						//{
-						// Triggers Rate
-						RPC_B_Triggers_ETA_PHI_All->Fill(eta_RPC_B, phi_RPC_B,1/Constxxxyyy);
-						RPC_B_Triggers_ETA_All->Fill(eta_RPC_B,1/Constxxxyyy);
-						RPC_B_Triggers_PHI_All->Fill(phi_RPC_B,1/Constxxxyyy);
-						switch (quality_RPC_B) {
-						case 0: {
-							if(debug) std::cout<<"Fill Quality 0 Histos"<<std::endl;
-							RPC_B_Triggers_ETA_Q0->Fill(eta_RPC_B,1/Constxxxyyy);
-							RPC_B_Triggers_PHI_Q0->Fill(phi_RPC_B,1/Constxxxyyy);
-								} break;
-						case 1: {
-							if(debug) std::cout<<"Fill Quality 1 Histos"<<std::endl;
-							RPC_B_Triggers_ETA_Q1->Fill(eta_RPC_B,1/Constxxxyyy);
-							RPC_B_Triggers_PHI_Q1->Fill(phi_RPC_B,1/Constxxxyyy);
-								} break;
-						case 2: {
-							if(debug) std::cout<<"Fill Quality 2 Histos"<<std::endl;
-							RPC_B_Triggers_ETA_Q2->Fill(eta_RPC_B,1/Constxxxyyy);
-							RPC_B_Triggers_PHI_Q2->Fill(phi_RPC_B,1/Constxxxyyy);
-								} break;
-						case 3: {
-							if(debug) std::cout<<"Fill Quality 3 Histos"<<std::endl;
-							RPC_B_Triggers_ETA_Q3->Fill(eta_RPC_B,1/Constxxxyyy);
-							RPC_B_Triggers_PHI_Q3->Fill(phi_RPC_B,1/Constxxxyyy);
-								} break;
-						default : std::cout<<"Quality_RPC_B = "<<quality_RPC_B<<std::endl;
-							++countTriggersInLumiSection_RPCb;
-							//} // end of time duration
-						}
-					}
-				}		
+		std::cout<<"!!! Filling Histograms befor applying the L1 trigger!!!"<<std::endl;
+		double newgenphi  = normalizedPhi(g.phi());
+		 //if ( newgenphi < 10 && g.eta() < 2.1) continue;
+			phi_mu_beforeL1->Fill(newgenphi); 
+			eta_mu_beforeL1->Fill(g.eta());
+			pt_mu_beforeL1->Fill(g.et());
+			genparticles_ETA_PHI_beforeL1->Fill(g.eta(),newgenphi);
+			
+			//////////////////////
+			// Applying L1 ///////
+			//////////////////////
+			if ( ! pCollection.isValid() ) {
+				//edm::LogError("discriminateGMT") << "can't find L1MuGMTReadoutCollection with label "<< m_gmtReadoutLabel ;
+				std::cout<<"can't find L1MuGMTReadoutCollection with label "<< m_gmtReadoutLabel<<std::endl;
+				//return -1; 
 			}
-		}
-}
+			// get GMT readout collection
+			const L1MuGMTReadoutCollection * gmtRC = pCollection.product();
+			// get record vector
+			std::vector<L1MuGMTReadoutRecord>::const_iterator RRItr;
+			std::vector<L1MuGMTReadoutRecord> gmt_records = gmtRC->getRecords();
+			for( RRItr = gmt_records.begin(); RRItr != gmt_records.end(); ++RRItr ) {
+				int BxInEventNew = RRItr->getBxNr();
+				// int BxCounter = RRItr->getBxCounter();
+				//int BxInEvent = RRItr->getBxInEvent();
+				//std::cout<<" BxCounter= "<<BxCounter<<" BxInEvent= "<<BxInEvent<<" BxInEventNew= "<<BxInEventNew<<std::endl;
+				int nrpcB = 0;
+				std::vector<L1MuRegionalCand> BrlRpcCands = RRItr->getBrlRPCCands();
+				std::vector<L1MuRegionalCand> FwdRPCCands = RRItr->getFwdRPCCands();
+				std::vector<L1MuRegionalCand> BrlDtCands  = RRItr->getDTBXCands ();
+				std::vector<L1MuRegionalCand> CSCCands = RRItr->getCSCCands();
+				std::vector<L1MuRegionalCand>::const_iterator RCItr;
+				//RPC_B Triggers  
+				for( RCItr = BrlRpcCands.begin(); RCItr !=BrlRpcCands.end(); ++RCItr) {
+					if ( !(*RCItr).empty() ) {
+						m_GMTcandidatesBx.push_back( BxInEventNew );
+						nrpcB++;
+						if(debug) {
+							std::cout<<"Run :: "<<rnNum<<" Event :: "<<evNum<<" | "; 
+							//std::cout<<"RPC Barrel Trigger :: q = "<<RCItr->quality()<<" pt = "<<RCItr->ptValue()<<" eta = "<<RCItr->etaValue()<<" phi = "<<RCItr->phiValue()<<std::endl;
+						}
+						if(!debug) {
+							int quality_RPC_B = RCItr->quality();
+							double eta_RPC_B = RCItr->etaValue();	
+							double phi_RPC_B = RCItr->phiValue();	
+							if(debug) std::cout<<"Fill All Histos"<<std::endl;
+							// Triggers Rate
+							RPC_B_Triggers_ETA_PHI_All->Fill(eta_RPC_B, phi_RPC_B,1/Constxxxyyy);
+							RPC_B_Triggers_ETA_All->Fill(eta_RPC_B,1/Constxxxyyy);
+							RPC_B_Triggers_PHI_All->Fill(phi_RPC_B,1/Constxxxyyy);
+							switch (quality_RPC_B) {
+							case 0: {
+								if(debug) std::cout<<"Fill Quality 0 Histos"<<std::endl;
+								RPC_B_Triggers_ETA_Q0->Fill(eta_RPC_B,1/Constxxxyyy);
+								RPC_B_Triggers_PHI_Q0->Fill(phi_RPC_B,1/Constxxxyyy);
+									} break;
+							case 1: {
+								if(debug) std::cout<<"Fill Quality 1 Histos"<<std::endl;
+								RPC_B_Triggers_ETA_Q1->Fill(eta_RPC_B,1/Constxxxyyy);
+								RPC_B_Triggers_PHI_Q1->Fill(phi_RPC_B,1/Constxxxyyy);
+									} break;
+							case 2: {
+								if(debug) std::cout<<"Fill Quality 2 Histos"<<std::endl;
+								RPC_B_Triggers_ETA_Q2->Fill(eta_RPC_B,1/Constxxxyyy);
+								RPC_B_Triggers_PHI_Q2->Fill(phi_RPC_B,1/Constxxxyyy);
+									} break;
+							case 3: {
+								if(debug) std::cout<<"Fill Quality 3 Histos"<<std::endl;
+								RPC_B_Triggers_ETA_Q3->Fill(eta_RPC_B,1/Constxxxyyy);
+								RPC_B_Triggers_PHI_Q3->Fill(phi_RPC_B,1/Constxxxyyy);
+									} break;
+							default : std::cout<<"Quality_RPC_B = "<<quality_RPC_B<<std::endl;
+							} // end of trigger quality
+							++countTriggersInLumiSection_RPCb;
+							std::cout<<"!!! Filling Histograms after applying the L1 trigger!!!"<<std::endl;
+							phi_mu_afterL1->Fill(newgenphi); 
+							eta_mu_afterL1->Fill(g.eta());
+							pt_mu_afterL1->Fill(g.et());
+							genparticles_ETA_PHI_afterL1->Fill(g.eta(),newgenphi);
+						} // end of if statment debug
+					} // end of if stament 	
+				} // end for RPCb trigger candidate loop
+			} // end of GMT loop
+	} // end of gen loop
+}// end of the method
 
 
 
