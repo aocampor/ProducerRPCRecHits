@@ -112,6 +112,9 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "CommonTools/Utils/interface/normalizedPhi.h"
 
+// delta R
+#include "DataFormats/Math/interface/deltaR.h"
+
 //
 // class declaration
 //
@@ -174,12 +177,12 @@ class genAnalyzer : public edm::EDAnalyzer {
 };
 
 //
-// constants, enums and typedefs
+//  constants, enums and typedefs
 //
 
 	int n_phi = 144;
 	int n_eta =  48;
-	double n_phi_1 =  0.0000; 
+	double n_phi_1 =  -6.2832; 
 	double n_phi_2 =  6.2832;
 	double n_eta_1 = -2.40;
 	double n_eta_2 =  2.40;
@@ -331,12 +334,14 @@ genAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		std::cout<<"Gen mu Candidate | id = "<<std::setw(5)<<g.pdgId()<<" | st = "<<std::setw(5)<<g.status()<<" | pt = "<<std::setw(12)<<g.pt();
 		std::cout<<" GeV/c | et = "<<std::setw(12)<<g.et()<<" GeV | eta = "<<std::setw(12)<<g.eta()<<" | phi = "<<std::setw(12)<<g.phi()<<std::endl;
 		std::cout<<"!!! Filling Histograms befor applying the L1 trigger!!!"<<std::endl;
-		double newgenphi  = normalizedPhi(g.phi());
-		 //if ( newgenphi < 10 && g.eta() < 2.1) continue;
-			phi_mu_beforeL1->Fill(newgenphi); 
+		//double newgenphi  = normalizedPhi(g.phi());
+		 if ( g.eta() < 1 && g.eta() > -1){
+			double genEta = g.eta();
+			double genPhi = g.phi();
+			phi_mu_beforeL1->Fill(g.phi()); 
 			eta_mu_beforeL1->Fill(g.eta());
 			pt_mu_beforeL1->Fill(g.et());
-			genparticles_ETA_PHI_beforeL1->Fill(g.eta(),newgenphi);
+			genparticles_ETA_PHI_beforeL1->Fill(g.eta(),g.phi());
 			
 			//////////////////////
 			// Applying L1 ///////
@@ -377,7 +382,8 @@ genAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 							double phi_RPC_B = RCItr->phiValue();	
 							if(debug) std::cout<<"Fill All Histos"<<std::endl;
 							// Triggers Rate
-							RPC_B_Triggers_ETA_PHI_All->Fill(eta_RPC_B, phi_RPC_B,1/Constxxxyyy);
+							double newgenphi  = normalizedPhi(phi_RPC_B);
+							RPC_B_Triggers_ETA_PHI_All->Fill(eta_RPC_B, newgenphi,1/Constxxxyyy);
 							RPC_B_Triggers_ETA_All->Fill(eta_RPC_B,1/Constxxxyyy);
 							RPC_B_Triggers_PHI_All->Fill(phi_RPC_B,1/Constxxxyyy);
 							switch (quality_RPC_B) {
@@ -404,15 +410,21 @@ genAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 							default : std::cout<<"Quality_RPC_B = "<<quality_RPC_B<<std::endl;
 							} // end of trigger quality
 							++countTriggersInLumiSection_RPCb;
-							std::cout<<"!!! Filling Histograms after applying the L1 trigger!!!"<<std::endl;
-							phi_mu_afterL1->Fill(newgenphi); 
-							eta_mu_afterL1->Fill(g.eta());
-							pt_mu_afterL1->Fill(g.et());
-							genparticles_ETA_PHI_afterL1->Fill(g.eta(),newgenphi);
+							//calculate Delta R between gen and L1
+							float dR = deltaR(eta_RPC_B, phi_RPC_B, genEta,genPhi);
+							std::cout<<"Delta R = "<< dR <<std::endl;
+							if(dR < 0.5){ //  Delta R condition
+								std::cout<<"!!! Filling Histograms after applying the L1 trigger!!!"<<std::endl;
+								phi_mu_afterL1->Fill(g.phi()); 
+								eta_mu_afterL1->Fill(g.eta());
+								pt_mu_afterL1->Fill(g.et());
+								genparticles_ETA_PHI_afterL1->Fill(g.eta(),g.phi());
+							} // end of Delta R condition
 						} // end of if statment debug
 					} // end of if stament 	
 				} // end for RPCb trigger candidate loop
 			} // end of GMT loop
+		 }// end of ETA cut
 	} // end of gen loop
 }// end of the method
 

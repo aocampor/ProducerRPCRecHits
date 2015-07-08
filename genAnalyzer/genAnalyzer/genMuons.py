@@ -17,8 +17,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source("PoolSource",
             fileNames = cms.untracked.vstring(
             #'file:/afs/cern.ch/user/a/aliah/source/001FB128-1DD9-E111-BBB3-E41F1318165C.root'
-			#'file:/afs/cern.ch/work/a/aliah/private/work/emulator/CMSSW_7_3_2_patch3/src/L1Trigger/RPCTrigger/test/l1_gas_leak.root',
-			'file:/afs/cern.ch/work/a/aliah/private/work/producer/CMSSW_7_3_2_patch3/src/SingleMuPt100_cfi_RECO.root',
+			'file:/afs/cern.ch/work/a/aliah/private/work/emulator/CMSSW_7_3_2_patch3/src/L1Trigger/RPCTrigger/test/l1_gas_leak.root',
+			#'file:/afs/cern.ch/work/a/aliah/private/work/producer/CMSSW_7_3_2_patch3/src/SingleMuPt100_cfi_RECO.root',
 
             )
 )
@@ -28,7 +28,7 @@ process.demo = cms.EDAnalyzer('genAnalyzer',
 							 # genParticles  = cms.InputTag("genParticles"),
 							  GTReadoutRcd     = cms.InputTag("gtDigis"),
                               GMTReadoutRcd    = cms.InputTag("gtDigis"),
-                              RootFileName = cms.untracked.string("output.root"),
+                              RootFileName = cms.untracked.string("output_leak.root"),
                               Debug        = cms.untracked.bool(False),
 							
 
