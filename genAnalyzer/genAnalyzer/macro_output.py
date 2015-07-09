@@ -3,15 +3,15 @@ from ROOT import *
 if __name__ == "__main__":
 
     file1 = TFile.Open('output.root')
-    phibefore = file1.Get('phi_mu_beforeL1')
-    phiafter = file1.Get('phi_mu_afterL1')
-    phibefore.Sumw2()
-    phiafter.Sumw2()
-    effphi = phiafter.Clone()
-    effphi.Divide(phibefore)
+    etabefore = file1.Get('eta_mu_beforeL1')
+    etaafter = file1.Get('eta_mu_afterL1')
+    etabefore.Sumw2()
+    etaafter.Sumw2()
+    effeta = etaafter.Clone()
+    effeta.Divide(etabefore)
     c1 = TCanvas()
-    effphi.Draw()
-    c1.SaveAs('AhmedEffPhi.png')
+    effeta.Draw()
+    c1.SaveAs('AhmedEffeta.png')
     
     twodbefore = file1.Get('genparticles_ETA_PHI_beforeL1')
     twodafter = file1.Get('genparticles_ETA_PHI_afterL1')
