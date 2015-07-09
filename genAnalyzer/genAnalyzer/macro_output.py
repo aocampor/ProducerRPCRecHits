@@ -2,7 +2,7 @@ from ROOT import *
 
 if __name__ == "__main__":
 
-    file1 = TFile.Open('output_leak.root')
+    file1 = TFile.Open('output.root')
     phibefore = file1.Get('phi_mu_beforeL1')
     phiafter = file1.Get('phi_mu_afterL1')
     phibefore.Sumw2()
