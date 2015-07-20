@@ -160,6 +160,10 @@ class genAnalyzer : public edm::EDAnalyzer {
   edm::InputTag m_gmtReadoutLabel;
   int countTriggersInLumiSection_RPCb;
   int myCurrentLumiSection;
+  int Counter_nrpcB_loop_one;
+  int Counter_nrpcB_loop_two;
+  int Counter_nrpcB_loop_three;
+  int Counter_nrpcB_loop_all;
 };
 
 //
@@ -284,6 +288,30 @@ genAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 					 if ( !(*RCItr).empty() ) {
 						 m_GMTcandidatesBx.push_back( BxInEventNew );
 						 nrpcB++;
+						 if (BrlRpcCands.size() < 5 ){
+						 	 std::cout<<"##### BrlRpcCands size = "<< BrlRpcCands.size()<<std::endl;
+							 std::cout<<"nrpcB = "<< nrpcB <<std::endl;
+							 if (nrpcB == 1 ){
+								 Counter_nrpcB_loop_one++;
+								 //std::cout<<"Counter_nrpcB_loop_one= "<<Counter_nrpcB_loop_one <<std::endl;
+							 }
+							 if (nrpcB == 2 ){
+								 Counter_nrpcB_loop_two++;
+								 //std::cout<<"Counter_nrpcB_loop_two= "<<Counter_nrpcB_loop_two <<std::endl;
+							 }
+							 if (nrpcB == 3 ){
+								 Counter_nrpcB_loop_three++;
+								 //std::cout<<"Counter_nrpcB_loop_three= "<<Counter_nrpcB_loop_three <<std::endl;
+							 }
+							 if (nrpcB < 10 ){
+								 Counter_nrpcB_loop_all++;
+								 //std::cout<<"Counter_nrpcB_loop_all= "<<Counter_nrpcB_loop_all <<std::endl;
+							 }
+							 std::cout<<"Counter_nrpcB_loop_one= "<<Counter_nrpcB_loop_one <<std::endl;
+							 std::cout<<"Counter_nrpcB_loop_two= "<<Counter_nrpcB_loop_two <<std::endl;
+							 std::cout<<"Counter_nrpcB_loop_three= "<<Counter_nrpcB_loop_three <<std::endl;
+							 std::cout<<"Counter_nrpcB_loop_all= "<<Counter_nrpcB_loop_all <<std::endl;
+						 }
 						 std::cout<<"Applying the L1 trigger!!!"<< " nrpcB++ = "<< nrpcB++<<std::endl;
 						 double eta_RPC_B = RCItr->etaValue();	
 						 double phi_RPC_B = RCItr->phiValue();
@@ -313,6 +341,10 @@ genAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 void 
 genAnalyzer::beginJob()
 {
+ Counter_nrpcB_loop_one = 0;
+ Counter_nrpcB_loop_two = 0;
+ Counter_nrpcB_loop_three = 0;
+ Counter_nrpcB_loop_all = 0; 
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
