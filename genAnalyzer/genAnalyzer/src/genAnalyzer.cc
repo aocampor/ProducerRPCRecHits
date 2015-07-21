@@ -149,11 +149,11 @@ class genAnalyzer : public edm::EDAnalyzer {
   std::string rootFileName;
   TFile * outputfile;
   // Before
-  TH1F * phi_mu_beforeL1, * eta_mu_beforeL1, * pt_mu_beforeL1;
+  TH1F * phi_mu_beforeL1_leak, * eta_mu_beforeL1_leak, * pt_mu_beforeL1_leak;
   TH2F * genparticles_ETA_PHI_beforeL1;
   // After
-  TH1F * phi_mu_afterL1, * eta_mu_afterL1, * pt_mu_afterL1;
-  TH2F * genparticles_ETA_PHI_afterL1;
+  TH1F * phi_mu_afterL1_leak, * eta_mu_afterL1_leak, * pt_mu_afterL1_leak;
+  TH2F * genparticles_ETA_PHI_afterL1_leak;
 
   // edm::InputTag m_rpcDigiLabel;
   edm::InputTag m_gtReadoutLabel;
@@ -164,6 +164,11 @@ class genAnalyzer : public edm::EDAnalyzer {
   int Counter_nrpcB_loop_two;
   int Counter_nrpcB_loop_three;
   int Counter_nrpcB_loop_all;
+  
+  int n_outside_GMT_loop;
+  int n_inside_GMT_outsideRPCb_loop;
+  int n_inside_RPCb_loop;
+
 };
 
 //
@@ -199,14 +204,14 @@ genAnalyzer::genAnalyzer(const edm::ParameterSet& iConfig)
 
 	outputfile = new TFile(rootFileName.c_str(), "RECREATE" );
 
-	phi_mu_beforeL1    = new TH1F("phi_mu_beforeL1", "phi_mu_beforeL1", n_phi, n_phi_1, n_phi_2);
-	eta_mu_beforeL1    = new TH1F("eta_mu_beforeL1", "eta_mu_beforeL1", n_eta_exact, n_eta_vec);
-	pt_mu_beforeL1     = new TH1F("pt_mu_beforeL1", "pt_mu_beforeL1", pt_n, pt_x1, pt_x2);
-	phi_mu_afterL1    = new TH1F("phi_mu_afterL1", "phi_mu_afterL1", n_phi, n_phi_1, n_phi_2);
-	eta_mu_afterL1    = new TH1F("eta_mu_afterL1", "eta_mu_afterL1", n_eta_exact, n_eta_vec);
-	pt_mu_afterL1     = new TH1F("pt_mu_afterL1", "pt_mu_afterL1", pt_n, pt_x1, pt_x2);
+	phi_mu_beforeL1_leak    = new TH1F("phi_mu_beforeL1_leak", "phi_mu_beforeL1_leak", n_phi, n_phi_1, n_phi_2);
+	eta_mu_beforeL1_leak    = new TH1F("eta_mu_beforeL1_leak", "eta_mu_beforeL1_leak", n_eta_exact, n_eta_vec);
+	pt_mu_beforeL1_leak     = new TH1F("pt_mu_beforeL1_leak", "pt_mu_beforeL1_leak", pt_n, pt_x1, pt_x2);
+	phi_mu_afterL1_leak    = new TH1F("phi_mu_afterL1_leak", "phi_mu_afterL1_leak", n_phi, n_phi_1, n_phi_2);
+	eta_mu_afterL1_leak    = new TH1F("eta_mu_afterL1_leak", "eta_mu_afterL1_leak", n_eta_exact, n_eta_vec);
+	pt_mu_afterL1_leak     = new TH1F("pt_mu_afterL1_leak", "pt_mu_afterL1_leak", pt_n, pt_x1, pt_x2);
 	genparticles_ETA_PHI_beforeL1 = new TH2F("genparticles_ETA_PHI_beforeL1",  "genparticles_ETA_PHI_beforeL1", n_eta_exact, n_eta_vec, n_phi, n_phi_1, n_phi_2);
-	genparticles_ETA_PHI_afterL1 = new TH2F("genparticles_ETA_PHI_afterL1",  "genparticles_ETA_PHI_afterL1", n_eta_exact, n_eta_vec, n_phi, n_phi_1, n_phi_2);
+	genparticles_ETA_PHI_afterL1_leak = new TH2F("genparticles_ETA_PHI_afterL1_leak",  "genparticles_ETA_PHI_afterL1_leak", n_eta_exact, n_eta_vec, n_phi, n_phi_1, n_phi_2);
     
 }
 
@@ -218,14 +223,14 @@ genAnalyzer::~genAnalyzer()
     // do anything here that needs to be done at desctruction time
     // (e.g. close files, deallocate resources etc.)
     outputfile->cd();
-   	phi_mu_beforeL1 ->Write();
-	phi_mu_afterL1 ->Write();
-	eta_mu_beforeL1 ->Write();
-	eta_mu_afterL1 ->Write();
-	pt_mu_beforeL1 ->Write();
-	pt_mu_afterL1 ->Write();
+   	phi_mu_beforeL1_leak ->Write();
+	phi_mu_afterL1_leak ->Write();
+	eta_mu_beforeL1_leak ->Write();
+	eta_mu_afterL1_leak ->Write();
+	pt_mu_beforeL1_leak ->Write();
+	pt_mu_afterL1_leak ->Write();
 	genparticles_ETA_PHI_beforeL1->Write();
-	genparticles_ETA_PHI_afterL1->Write();
+	genparticles_ETA_PHI_afterL1_leak->Write();
     outputfile->Close();
     //std::cout<<"genAnalyzer :: Destructor :: end]"<<std::endl; 
 }
@@ -262,75 +267,81 @@ genAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	// loop over genparticles
 	for(unsigned int i=0; i<genParticles->size(); ++i) {
 		const GenParticle & g = (*genParticles)[i];
-		std::cout<<"Gen mu Candidate | id = "<<std::setw(5)<<g.pdgId()<<" | st = "<<std::setw(5)<<g.status()<<" | pt = "<<std::setw(12)<<g.pt();
-		std::cout<<" GeV/c | et = "<<std::setw(12)<<g.et()<<" GeV | eta = "<<std::setw(12)<<g.eta()<<" | phi = "<<std::setw(12)<<g.phi()<<std::endl;
+		//std::cout<<"Gen mu Candidate | id = "<<std::setw(5)<<g.pdgId()<<" | st = "<<std::setw(5)<<g.status()<<" | pt = "<<std::setw(12)<<g.pt();
+		//std::cout<<" GeV/c | et = "<<std::setw(12)<<g.et()<<" GeV | eta = "<<std::setw(12)<<g.eta()<<" | phi = "<<std::setw(12)<<g.phi()<<std::endl;
 		//double newgenphi  = normalizedPhi(g.phi());
-		 if ( g.eta() < 0.9 && g.eta() > -0.9){
-			 std::cout<<"!!! Filling Histograms Befor applying the L1 trigger!!!"<<std::endl;
+		//if ( g.eta() < 1.0 && g.eta() > -1.0){
+			/* ok std::cout<<"!!! Filling Histograms Befor applying the L1 trigger!!!"<<std::endl;
 			 std::cout<<"######The Candidate | id = "<<std::setw(5)<<g.pdgId();
-			 std::cout<<"  | eta = "<<std::setw(12)<<g.eta()<<" | phi = "<<std::setw(12)<<g.phi()<<std::endl;
+			 std::cout<<"  | eta = "<<std::setw(12)<<g.eta()<<" | phi = "<<std::setw(12)<<g.phi()<<std::endl;*/
 			 double genEta = g.eta();
 			 double genPhi = g.phi();
-			 phi_mu_beforeL1->Fill(g.phi()); 
-			 eta_mu_beforeL1->Fill(g.eta());
-			 pt_mu_beforeL1->Fill(g.et());
+			 phi_mu_beforeL1_leak->Fill(g.phi()); 
+			 eta_mu_beforeL1_leak->Fill(g.eta());
+			 pt_mu_beforeL1_leak->Fill(g.et());
 			 genparticles_ETA_PHI_beforeL1->Fill(g.eta(),g.phi());
 			 //////////////////////
 			 // Applying L1 ///////
 			 //////////////////////
+			 n_outside_GMT_loop++;
+			 std::cout<<"==>==> n outside L1 loop = "<< n_outside_GMT_loop <<std::endl;
 			 for( RRItr = gmt_records.begin(); RRItr != gmt_records.end(); ++RRItr ) {
 				 int BxInEventNew = RRItr->getBxNr();
 				 int nrpcB = 0;
 				 std::vector<L1MuRegionalCand> BrlRpcCands = RRItr->getBrlRPCCands();
 				 std::vector<L1MuRegionalCand>::const_iterator RCItr;
+				 n_inside_GMT_outsideRPCb_loop++;
+				 std::cout<<"	==>==>==>==> n inside GMT and outside RPCb loop = "<< n_inside_GMT_outsideRPCb_loop <<std::endl;
 				 //RPC_B Triggers  
 				 for( RCItr = BrlRpcCands.begin(); RCItr !=BrlRpcCands.end(); ++RCItr) {
 					 if ( !(*RCItr).empty() ) {
 						 m_GMTcandidatesBx.push_back( BxInEventNew );
+						 m_GMTcandidatesBx.size();
 						 nrpcB++;
-						 if (BrlRpcCands.size() < 5 ){
-						 	 std::cout<<"##### BrlRpcCands size = "<< BrlRpcCands.size()<<std::endl;
-							 std::cout<<"nrpcB = "<< nrpcB <<std::endl;
+						 n_inside_RPCb_loop++;
+						 std::cout<<"		==>==>==>==>==>==> n inside RPCb loop = "<< n_inside_RPCb_loop <<std::endl;
+
+						if (BrlRpcCands.size() < 5 ){
+							 //std::cout<<"##### BrlRpcCands size = "<< BrlRpcCands.size()<<std::endl;
+							 //std::cout<<"nrpcB = "<< nrpcB <<std::endl;
 							 if (nrpcB == 1 ){
 								 Counter_nrpcB_loop_one++;
-								 //std::cout<<"Counter_nrpcB_loop_one= "<<Counter_nrpcB_loop_one <<std::endl;
 							 }
 							 if (nrpcB == 2 ){
 								 Counter_nrpcB_loop_two++;
-								 //std::cout<<"Counter_nrpcB_loop_two= "<<Counter_nrpcB_loop_two <<std::endl;
 							 }
 							 if (nrpcB == 3 ){
 								 Counter_nrpcB_loop_three++;
-								 //std::cout<<"Counter_nrpcB_loop_three= "<<Counter_nrpcB_loop_three <<std::endl;
 							 }
 							 if (nrpcB < 10 ){
 								 Counter_nrpcB_loop_all++;
-								 //std::cout<<"Counter_nrpcB_loop_all= "<<Counter_nrpcB_loop_all <<std::endl;
 							 }
-							 std::cout<<"Counter_nrpcB_loop_one= "<<Counter_nrpcB_loop_one <<std::endl;
-							 std::cout<<"Counter_nrpcB_loop_two= "<<Counter_nrpcB_loop_two <<std::endl;
-							 std::cout<<"Counter_nrpcB_loop_three= "<<Counter_nrpcB_loop_three <<std::endl;
-							 std::cout<<"Counter_nrpcB_loop_all= "<<Counter_nrpcB_loop_all <<std::endl;
-						 }
-						 std::cout<<"Applying the L1 trigger!!!"<< " nrpcB++ = "<< nrpcB++<<std::endl;
+							 //std::cout<<"Counter_nrpcB_loop_one= "<<Counter_nrpcB_loop_one <<std::endl;
+							 //std::cout<<"Counter_nrpcB_loop_two= "<<Counter_nrpcB_loop_two <<std::endl;
+							 //std::cout<<"Counter_nrpcB_loop_three= "<<Counter_nrpcB_loop_three <<std::endl;
+							 //std::cout<<"Counter_nrpcB_loop_all= "<<Counter_nrpcB_loop_all <<std::endl;
+						}
+
+
+						 //ok std::cout<<"Applying the L1 trigger!!!"<< " nrpcB++ = "<< nrpcB++<<std::endl;
 						 double eta_RPC_B = RCItr->etaValue();	
 						 double phi_RPC_B = RCItr->phiValue();
 						 //calculate Delta R between gen and L1
 						 float dR = deltaR(eta_RPC_B, phi_RPC_B, genEta,genPhi);
-						 std::cout<<"Delta R = "<< dR <<std::endl;
+						 // ok std::cout<<"Delta R = "<< dR <<std::endl;
 						 if(dR < 0.5){ //  Delta R condition
-							std::cout<<"!!! Filling Histograms After applying the L1 trigger!!!"<<std::endl;
+							/* ok std::cout<<"!!! Filling Histograms After applying the L1 trigger!!!"<<std::endl;
 							std::cout<<"######The Trigger Candidate | id = "<<std::setw(5)<<g.pdgId();
-							std::cout<<"  | eta = "<<std::setw(12)<<g.eta()<<" | phi = "<<std::setw(12)<<g.phi()<<std::endl;
-							phi_mu_afterL1->Fill(g.phi()); 
-							eta_mu_afterL1->Fill(g.eta());
-							pt_mu_afterL1->Fill(g.et());
-							genparticles_ETA_PHI_afterL1->Fill(g.eta(),g.phi());
+							std::cout<<"  | eta = "<<std::setw(12)<<g.eta()<<" | phi = "<<std::setw(12)<<g.phi()<<std::endl; */
+							phi_mu_afterL1_leak->Fill(g.phi()); 
+							eta_mu_afterL1_leak->Fill(g.eta());
+							pt_mu_afterL1_leak->Fill(g.et());
+							genparticles_ETA_PHI_afterL1_leak->Fill(g.eta(),g.phi());
 						 } // end of Delta R condition
 					 } // end of if stament 	
 				 } // end for RPCb trigger candidate loop
 			 } // end of GMT loop
-		 }// end of ETA cut
+		//}// end of ETA cut
 	} // end of gen loop
 }// end of the method
 
@@ -344,7 +355,12 @@ genAnalyzer::beginJob()
  Counter_nrpcB_loop_one = 0;
  Counter_nrpcB_loop_two = 0;
  Counter_nrpcB_loop_three = 0;
- Counter_nrpcB_loop_all = 0; 
+ Counter_nrpcB_loop_all = 0;
+ 
+ n_outside_GMT_loop = 0;
+ n_inside_GMT_outsideRPCb_loop = 0;
+ n_inside_RPCb_loop = 0;
+ 
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
